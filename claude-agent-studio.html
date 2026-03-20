@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Agent Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="icon" type="image/png" href="icon.png">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08080a;--bg2:#0f0f12;--bg3:#16161b;--bg4:#1c1c23;--bg5:#23232c;
+  --border:#252530;--border2:#32323f;--border3:#42424f;
+  --text:#eeeef2;--text2:#9292a4;--text3:#55555f;--text4:#333340;
+  --accent:#7c6af7;--accent-h:#9585f8;--accent-dim:#2d2845;--accent-glow:rgba(124,106,247,.15);
+  --green:#2dbd8c;--green-dim:#0f2b1f;
+  --amber:#f5a623;--amber-dim:#2e1d07;
+  --red:#e05c5c;--red-dim:#2b0f0f;
+  --blue:#4f9cf9;--blue-dim:#0d1e36;
+  --teal:#2dd4bf;--teal-dim:#0d2926;
+  --mono:'DM Mono',monospace;--display:'Syne',sans-serif;
+  --r:10px;--rs:6px;--rl:14px;
+}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--display);display:flex;flex-direction:column}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ── Topbar ── */
+.topbar{height:52px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:16px;flex-shrink:0;background:var(--bg2);z-index:10}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:28px;height:28px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-mark svg{width:16px;height:16px;fill:none;stroke:white;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.logo-name{font-size:14px;font-weight:700;letter-spacing:-.01em}
+.logo-sub{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.sep{width:1px;height:20px;background:var(--border2)}
+.nav{display:flex;gap:2px}
+.nav-btn{padding:5px 12px;border-radius:var(--rs);border:none;background:transparent;color:var(--text3);font-family:var(--display);font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.02em;transition:all .15s;display:flex;align-items:center;gap:6px}
+.nav-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+.nav-btn:hover{background:var(--bg4);color:var(--text2)}
+.nav-btn.active{background:var(--bg4);color:var(--text);border:1px solid var(--border2)}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.pulse{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.status{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.kbd{font-family:var(--mono);font-size:9px;background:var(--bg4);border:1px solid var(--border2);padding:2px 6px;border-radius:4px;color:var(--text3)}
+
+/* ── Layout ── */
+.body{flex:1;display:grid;grid-template-columns:220px 1fr;overflow:hidden}
+
+/* ── Sidebar ── */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:all .2s}
+.sb-head{padding:14px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-label{font-size:9px;font-weight:600;letter-spacing:.12em;color:var(--text4);text-transform:uppercase;margin-bottom:10px;font-family:var(--mono)}
+.btn-new{width:100%;padding:8px 12px;background:var(--accent-dim);border:1px solid var(--accent);border-radius:var(--rs);color:var(--accent-h);font-family:var(--display);font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .15s}
+.btn-new svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5}
+.btn-new:hover{background:var(--accent);color:#fff;box-shadow:0 0 20px var(--accent-glow)}
+.btn-new.skill-mode{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+.btn-new.skill-mode:hover{background:var(--teal);color:#fff}
+.item-list{flex:1;overflow-y:auto;padding:6px}
+.li-item{padding:9px 11px;border-radius:var(--rs);cursor:pointer;border:1px solid transparent;transition:all .12s;margin-bottom:2px}
+.li-item:hover{background:var(--bg3);border-color:var(--border)}
+.li-item.active{background:var(--bg4);border-color:var(--border2)}
+.li-row{display:flex;align-items:center;gap:7px;margin-bottom:3px}
+.li-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.dot-coder{background:var(--green)}.dot-writer{background:var(--accent-h)}.dot-analyst{background:var(--amber)}.dot-custom{background:var(--text3)}
+.dot-prompt{background:var(--teal)}.dot-script{background:var(--amber)}.dot-reference{background:var(--blue)}.dot-workflow{background:var(--accent-h)}
+.li-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.li-type{font-size:9px;color:var(--text3);font-family:var(--mono);letter-spacing:.04em;margin-left:auto;flex-shrink:0}
+.li-desc{font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:12px;font-family:var(--mono)}
+.sb-foot{padding:10px 14px;border-top:1px solid var(--border);flex-shrink:0;font-size:10px;color:var(--text4);font-family:var(--mono)}
+
+/* ── Main ── */
+.main{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px}
+.empty-glyph{font-family:var(--mono);font-size:48px;color:var(--text4);animation:blink 2s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.empty-title{font-size:18px;font-weight:700;color:var(--text2)}
+.empty-sub{font-size:12px;color:var(--text3);font-family:var(--mono);text-align:center;line-height:1.7;max-width:280px}
+.empty-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+
+/* ── Editor header ── */
+.ed-header{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;background:var(--bg2)}
+.ed-name-wrap{flex:1;display:flex;align-items:center;gap:10px}
+.ed-name{font-family:var(--display);font-size:16px;font-weight:700;background:transparent;border:none;color:var(--text);outline:none;flex:1;min-width:0}
+.ed-name::placeholder{color:var(--text4)}
+.badge{padding:3px 9px;border-radius:20px;font-size:9px;font-weight:600;font-family:var(--mono);letter-spacing:.06em;white-space:nowrap}
+.badge-coder{background:var(--green-dim);color:var(--green);border:1px solid rgba(45,189,140,.3)}
+.badge-writer{background:var(--accent-dim);color:var(--accent-h);border:1px solid rgba(124,106,247,.3)}
+.badge-analyst{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,.3)}
+.badge-custom{background:var(--bg4);color:var(--text3);border:1px solid var(--border2)}
+.badge-prompt{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(45,212,191,.3)}
+.badge-script{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,.3)}
+.badge-reference{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(79,156,249,.3)}
+.badge-workflow{background:var(--accent-dim);color:var(--accent-h);border:1px solid rgba(124,106,247,.3)}
+.ed-actions{display:flex;gap:6px}
+.tbtn{padding:6px 13px;border-radius:var(--rs);font-family:var(--display);font-size:11px;font-weight:600;cursor:pointer;letter-spacing:.03em;border:1px solid var(--border2);background:transparent;color:var(--text2);transition:all .15s}
+.tbtn:hover{background:var(--bg4);color:var(--text)}
+.tbtn-accent{background:var(--accent);border-color:var(--accent);color:#fff}
+.tbtn-accent:hover{background:var(--accent-h);box-shadow:0 0 16px var(--accent-glow)}
+.tbtn-teal{background:var(--teal);border-color:var(--teal);color:#fff}
+.tbtn-teal:hover{opacity:.85}
+.tbtn-danger{color:var(--red);border-color:transparent}
+.tbtn-danger:hover{background:var(--red-dim);border-color:var(--red)}
+
+/* ── Editor panes ── */
+.ed-content{flex:1;display:grid;grid-template-columns:1fr 1fr;overflow:hidden}
+.pane{padding:18px 20px;display:flex;flex-direction:column;gap:16px;overflow-y:auto}
+.pane-l{border-right:1px solid var(--border)}
+.field{display:flex;flex-direction:column;gap:7px}
+.field-label{font-size:9px;font-weight:600;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;font-family:var(--mono);display:flex;align-items:center;gap:7px}
+.ftag{font-size:8px;background:var(--bg4);border:1px solid var(--border2);padding:1px 6px;border-radius:3px;color:var(--text4);font-weight:500}
+.ctrl{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:9px 12px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none;transition:border .15s;-webkit-appearance:none;line-height:1.6}
+.ctrl:focus{border-color:var(--border3)}
+.ctrl::placeholder{color:var(--text4)}
+select.ctrl{cursor:pointer}
+textarea.ctrl{resize:none}
+.hint{font-size:10px;color:var(--text4);font-family:var(--mono);line-height:1.6}
+
+/* ── Tools chips ── */
+.tools-wrap{display:flex;flex-wrap:wrap;gap:5px}
+.chip{padding:4px 10px;border-radius:5px;font-size:10px;font-weight:600;font-family:var(--mono);cursor:pointer;letter-spacing:.04em;border:1px solid var(--border);background:var(--bg3);color:var(--text3);transition:all .1s;user-select:none}
+.chip:hover{border-color:var(--border3);color:var(--text2)}
+.on-read,.on-glob,.on-grep{background:var(--green-dim);border-color:rgba(45,189,140,.4);color:var(--green)}
+.on-edit,.on-write,.on-multiedit{background:var(--amber-dim);border-color:rgba(245,166,35,.4);color:var(--amber)}
+.on-bash{background:var(--red-dim);border-color:rgba(224,92,92,.4);color:var(--red)}
+.on-websearch{background:var(--blue-dim);border-color:rgba(79,156,249,.4);color:var(--blue)}
+.on-task{background:var(--bg5);border-color:var(--border3);color:var(--text2)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:2px}
+.leg-i{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--text4);font-family:var(--mono)}
+.leg-d{width:5px;height:5px;border-radius:50%}
+
+/* ── Preview card ── */
+.prev-card{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;min-height:180px}
+.prev-top{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.prev-title{font-size:9px;font-weight:600;letter-spacing:.1em;color:var(--text3);font-family:var(--mono);text-transform:uppercase}
+.mini-btn{font-size:10px;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:3px 9px;border-radius:4px;cursor:pointer;font-family:var(--mono);transition:all .12s}
+.mini-btn:hover{color:var(--text);border-color:var(--border3)}
+.prev-body{padding:14px;overflow-y:auto;flex:1;font-family:var(--mono);font-size:11px;line-height:1.85;color:var(--text2);white-space:pre-wrap;word-break:break-word}
+.pk{color:var(--accent-h)}.pv{color:var(--green)}.pd{color:var(--text4)}.ph{color:var(--amber);font-weight:500}.pc{color:var(--text3);font-style:italic}.pteal{color:var(--teal)}
+
+/* ── Path field ── */
+.pf{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px;font-family:var(--mono);font-size:11px;display:flex;align-items:center;gap:6px;transition:border .15s}
+.pf:focus-within{border-color:var(--border3)}
+.pf-pre{color:var(--text3);white-space:nowrap;flex-shrink:0}
+.pf-in{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:11px;min-width:0}
+.pf-in::placeholder{color:var(--text4)}
+
+/* ── Action buttons ── */
+.install-btn{width:100%;padding:11px 16px;border-radius:var(--rs);background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:var(--display);font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.03em;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s}
+.install-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+.install-btn:hover{border-color:var(--accent);color:var(--accent-h);background:var(--accent-dim)}
+.install-btn.skill-style:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-dim)}
+
+/* ── Skill pattern cards ── */
+.pattern-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pattern-card{padding:10px 12px;border-radius:var(--rs);border:1px solid var(--border);background:var(--bg3);cursor:pointer;transition:all .12s}
+.pattern-card:hover{border-color:var(--border2);background:var(--bg4)}
+.pattern-card.selected{border-color:var(--teal);background:var(--teal-dim)}
+.pattern-card-title{font-size:11px;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.pattern-card-desc{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+.pattern-dot{width:6px;height:6px;border-radius:50%}
+
+/* ── Tabs (skill files) ── */
+.tab-row{display:flex;gap:4px;border-bottom:1px solid var(--border);padding:0 20px;flex-shrink:0;background:var(--bg2)}
+.tab{padding:8px 14px;font-size:11px;font-weight:600;font-family:var(--mono);color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;letter-spacing:.03em;margin-bottom:-1px}
+.tab:hover{color:var(--text2)}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+
+/* ── Modal ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px);animation:fi .15s ease}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rl);width:620px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 40px 80px rgba(0,0,0,.7);animation:su .2s ease}
+@keyframes su{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-h{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-title{font-size:15px;font-weight:700}
+.modal-close{background:transparent;border:1px solid var(--border2);border-radius:5px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);font-size:18px;transition:all .12s;line-height:1}
+.modal-close:hover{background:var(--bg4);color:var(--text)}
+.modal-b{padding:20px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:20px}
+.step{display:flex;gap:14px}
+.step-n{width:24px;height:24px;border-radius:50%;background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent-h);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)}
+.step-n.teal{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+.step-b{flex:1;display:flex;flex-direction:column;gap:8px}
+.step-t{font-size:13px;font-weight:600}
+.step-d{font-size:11px;color:var(--text3);font-family:var(--mono);line-height:1.65}
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);padding:10px 14px;font-family:var(--mono);font-size:11px;color:var(--green);display:flex;align-items:flex-start;justify-content:space-between;gap:10px;line-height:1.6}
+.code-block code{flex:1;word-break:break-all;white-space:pre-wrap}
+.code-copy{background:var(--bg3);border:1px solid var(--border2);color:var(--text3);padding:3px 9px;border-radius:4px;font-size:10px;cursor:pointer;font-family:var(--mono);transition:all .12s;flex-shrink:0}
+.code-copy:hover{color:var(--text);border-color:var(--border3)}
+.modal-f{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;flex-shrink:0}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:var(--rs);padding:9px 18px;font-size:12px;font-family:var(--mono);z-index:200;animation:ti .2s ease;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+@keyframes ti{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* ── Skill section divider ── */
+.section-sep{display:flex;align-items:center;gap:10px;margin:4px 0}
+.section-sep-line{flex:1;height:1px;background:var(--border)}
+.section-sep-label{font-size:9px;font-family:var(--mono);color:var(--text4);letter-spacing:.08em}
+
+/* ── Hooks ── */
+--red-h:#f07070;
+.btn-new.hook-mode{background:var(--red-dim);border-color:var(--red);color:var(--red-h,#f07070)}
+.btn-new.hook-mode:hover{background:var(--red);color:#fff}
+.tbtn-red{background:var(--red);border-color:var(--red);color:#fff}
+.tbtn-red:hover{opacity:.85}
+.badge-pretool{background:var(--red-dim);color:var(--red);border:1px solid rgba(224,92,92,.35)}
+.badge-posttool{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,.35)}
+.badge-sessionstart{background:var(--green-dim);color:var(--green);border:1px solid rgba(45,189,140,.35)}
+.badge-sessionend{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(79,156,249,.35)}
+.badge-stop{background:var(--bg4);color:var(--text3);border:1px solid var(--border2)}
+.badge-prompt-submit{background:var(--accent-dim);color:var(--accent-h);border:1px solid rgba(124,106,247,.35)}
+.dot-pretool{background:var(--red)}.dot-posttool{background:var(--amber)}
+.dot-sessionstart{background:var(--green)}.dot-sessionend{background:var(--blue)}
+.dot-stop{background:var(--text3)}.dot-prompt-submit{background:var(--accent-h)}
+.install-btn.hook-style:hover{border-color:var(--red);color:var(--red);background:var(--red-dim)}
+.step-n.red{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+/* event cards */
+.event-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.event-card{padding:10px 12px;border-radius:var(--rs);border:1px solid var(--border);background:var(--bg3);cursor:pointer;transition:all .12s}
+.event-card:hover{border-color:var(--border2);background:var(--bg4)}
+.event-card.selected{border-color:var(--red);background:var(--red-dim)}
+.event-card-title{font-size:11px;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.event-card-desc{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.5}
+.event-dot{width:6px;height:6px;border-radius:50%}
+/* tab hook */
+.tab.active-hook{color:var(--red);border-bottom-color:var(--red)}
+/* matcher chips */
+.matcher-row{display:flex;flex-wrap:wrap;gap:5px}
+.mchip{padding:4px 10px;border-radius:5px;font-size:10px;font-weight:600;font-family:var(--mono);cursor:pointer;letter-spacing:.03em;border:1px solid var(--border);background:var(--bg3);color:var(--text3);transition:all .1s;user-select:none}
+.mchip:hover{border-color:var(--border3);color:var(--text2)}
+.mchip.on{background:var(--red-dim);border-color:rgba(224,92,92,.5);color:var(--red)}
+/* exit code selector */
+.exit-row{display:flex;gap:8px}
+.exit-opt{flex:1;padding:9px 10px;border-radius:var(--rs);border:1px solid var(--border);background:var(--bg3);cursor:pointer;text-align:center;transition:all .12s}
+.exit-opt:hover{border-color:var(--border2)}
+.exit-opt.sel-0{border-color:var(--green);background:var(--green-dim)}
+.exit-opt.sel-2{border-color:var(--red);background:var(--red-dim)}
+.exit-label{font-size:11px;font-weight:600;font-family:var(--mono)}
+.exit-desc{font-size:9px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+/* JSON preview */
+.json-prev{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;min-height:200px}
+.jp-top{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.jp-body{padding:14px;overflow-y:auto;flex:1;font-family:var(--mono);font-size:11px;line-height:1.85;color:var(--text2);white-space:pre-wrap;word-break:break-word}
+.jk{color:var(--accent-h)}.jv{color:var(--green)}.js{color:var(--amber)}.jb{color:var(--red)}.jc{color:var(--text3);font-style:italic}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    </div>
+    <span class="logo-name">Agent Studio</span>
+    <span class="logo-sub">// claude code</span>
+  </div>
+  <div class="sep"></div>
+  <nav class="nav">
+    <button class="nav-btn active" id="nav-agents" onclick="setView('agents')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>Agentes
+    </button>
+    <button class="nav-btn" id="nav-skills" onclick="setView('skills')">
+      <svg viewBox="0 0 24 24"><path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/></svg>Skills
+    </button>
+    <button class="nav-btn" id="nav-hooks" onclick="setView('hooks')">
+      <svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>Hooks
+    </button>
+  </nav>
+  <div class="topbar-right">
+    <span class="pulse"></span>
+    <span class="status">localStorage</span>
+    <span class="kbd">⌘S</span>
+  </div>
+</header>
+
+<div class="body">
+  <aside class="sidebar">
+    <div class="sb-head">
+      <div class="sb-label" id="sbLabel">Meus agentes</div>
+      <button class="btn-new" id="btnNew" onclick="newItem()">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span id="btnNewLabel">Novo agente</span>
+      </button>
+    </div>
+    <div class="item-list" id="itemList"></div>
+    <div class="sb-foot" id="countEl">0 itens</div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ══ AGENTS VIEW ══ -->
+    <div id="view-agents" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+      <div class="empty" id="agentEmpty">
+        <div class="empty-glyph">_</div>
+        <div class="empty-title">Nenhum agente</div>
+        <div class="empty-sub">Crie um agente para definir comportamentos especializados no Claude Code.</div>
+        <div class="empty-row">
+          <button class="tbtn tbtn-accent" onclick="newItem()">+ Criar agente</button>
+          <button class="tbtn" onclick="loadAgentDemos()">Carregar exemplos</button>
+        </div>
+      </div>
+      <div id="agentEditor" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+        <div class="ed-header">
+          <div class="ed-name-wrap">
+            <input class="ed-name" id="aName" placeholder="Nome do agente..." oninput="dirty();agentPreview()">
+            <span id="aBadge" class="badge badge-custom">CUSTOM</span>
+          </div>
+          <div class="ed-actions">
+            <button class="tbtn tbtn-danger" onclick="delItem('agent')">Excluir</button>
+            <button class="tbtn" id="aCopyBtn" onclick="copyAgentMD()">Copiar MD</button>
+            <button class="tbtn tbtn-accent" id="aSaveBtn" onclick="saveAgent()">Salvar</button>
+          </div>
+        </div>
+        <div class="ed-content">
+          <div class="pane pane-l">
+            <div class="field">
+              <div class="field-label">Tipo <span class="ftag">template</span></div>
+              <select class="ctrl" id="aType" onchange="applyAgentTpl();updateBadge('agent');agentPreview()">
+                <option value="custom">Personalizado</option>
+                <option value="coder">Desenvolvedor de código</option>
+                <option value="writer">Escritor / Redator</option>
+                <option value="analyst">Analista de dados</option>
+              </select>
+            </div>
+            <div class="field">
+              <div class="field-label">Descrição <span class="ftag">trigger</span></div>
+              <textarea class="ctrl" id="aDesc" rows="3" placeholder="Descreva quando o Claude deve acionar este agente..." oninput="dirty();agentPreview()"></textarea>
+              <div class="hint">// Claude usa este campo para decidir quando carregar o agente.</div>
+            </div>
+            <div class="field">
+              <div class="field-label">System prompt <span class="ftag">instruções</span></div>
+              <textarea class="ctrl" id="aPrompt" rows="9" placeholder="Você é um especialista em..." oninput="dirty();agentPreview()"></textarea>
+            </div>
+            <div class="field">
+              <div class="field-label">Ferramentas <span class="ftag">allowed-tools</span></div>
+              <div class="tools-wrap" id="aTools"></div>
+              <div class="legend">
+                <div class="leg-i"><div class="leg-d" style="background:var(--green)"></div>leitura</div>
+                <div class="leg-i"><div class="leg-d" style="background:var(--amber)"></div>escrita</div>
+                <div class="leg-i"><div class="leg-d" style="background:var(--red)"></div>shell</div>
+                <div class="leg-i"><div class="leg-d" style="background:var(--blue)"></div>web</div>
+              </div>
+            </div>
+          </div>
+          <div class="pane">
+            <div class="prev-card">
+              <div class="prev-top">
+                <span class="prev-title">SKILL.md — preview</span>
+                <button class="mini-btn" onclick="copyAgentMD()">copiar</button>
+              </div>
+              <div class="prev-body" id="aPrev"></div>
+            </div>
+            <div class="field">
+              <div class="field-label">Caminho do arquivo</div>
+              <div class="pf">
+                <span class="pf-pre">.claude/agents/</span>
+                <input class="pf-in" id="aPath" placeholder="meu-agente.md" oninput="dirty();agentPreview()">
+              </div>
+              <div class="hint">// Use ~/.claude/agents/ para disponibilizar globalmente.</div>
+            </div>
+            <div class="field">
+              <div class="field-label">Slash command <span class="ftag">opcional</span></div>
+              <div class="pf">
+                <span class="pf-pre">/</span>
+                <input class="pf-in" id="aCmd" placeholder="nome-do-comando" oninput="dirty();agentPreview()">
+              </div>
+            </div>
+            <button class="install-btn" onclick="openAgentModal()">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Ver instruções de instalação
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SKILLS VIEW ══ -->
+    <div id="view-skills" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+      <div class="empty" id="skillEmpty">
+        <div class="empty-glyph" style="animation:none;opacity:.2">&#9733;</div>
+        <div class="empty-title">Nenhuma skill</div>
+        <div class="empty-sub">Skills ensinam o Claude a executar workflows específicos, carregadas sob demanda quando o contexto bate.</div>
+        <div class="empty-row">
+          <button class="tbtn tbtn-teal" onclick="newItem()">+ Criar skill</button>
+          <button class="tbtn" onclick="loadSkillDemos()">Carregar exemplos</button>
+        </div>
+      </div>
+      <div id="skillEditor" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+        <div class="ed-header">
+          <div class="ed-name-wrap">
+            <input class="ed-name" id="sName" placeholder="Nome da skill..." oninput="dirty();skillPreview()">
+            <span id="sBadge" class="badge badge-prompt">PROMPT</span>
+          </div>
+          <div class="ed-actions">
+            <button class="tbtn tbtn-danger" onclick="delItem('skill')">Excluir</button>
+            <button class="tbtn" id="sCopyBtn" onclick="copySkillMD()">Copiar MD</button>
+            <button class="tbtn tbtn-teal" id="sSaveBtn" onclick="saveSkill()">Salvar</button>
+          </div>
+        </div>
+
+        <!-- Skill tab row (SKILL.md / scripts / references) -->
+        <div class="tab-row" id="skillTabs">
+          <div class="tab active" id="tab-main" onclick="switchSkillTab('main')">SKILL.md</div>
+          <div class="tab" id="tab-refs" onclick="switchSkillTab('refs')">references/</div>
+          <div class="tab" id="tab-scripts" onclick="switchSkillTab('scripts')">scripts/</div>
+        </div>
+
+        <!-- Tab: SKILL.md -->
+        <div id="skillTabMain" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+          <div class="ed-content">
+            <div class="pane pane-l">
+              <div class="field">
+                <div class="field-label">Padrão <span class="ftag">pattern</span></div>
+                <div class="pattern-grid" id="patternGrid"></div>
+                <div class="hint" style="margin-top:4px">// Define a estrutura de arquivos gerada para a skill.</div>
+              </div>
+              <div class="field">
+                <div class="field-label">Descrição <span class="ftag">trigger</span></div>
+                <textarea class="ctrl" id="sDesc" rows="3" placeholder="Descreva quando e como Claude deve usar esta skill..." oninput="dirty();skillPreview()"></textarea>
+                <div class="hint">// Seja específico. Claude só carrega a skill se a descrição bater com a tarefa.</div>
+              </div>
+              <div class="field">
+                <div class="field-label">Instruções <span class="ftag">body</span></div>
+                <textarea class="ctrl" id="sBody" rows="10" placeholder="# Nome da Skill&#10;&#10;## Workflow&#10;1. Passo um&#10;2. Passo dois&#10;..." oninput="dirty();skillPreview()"></textarea>
+              </div>
+              <div class="field">
+                <div class="field-label">Ferramentas <span class="ftag">allowed-tools</span></div>
+                <div class="tools-wrap" id="sTools"></div>
+              </div>
+            </div>
+            <div class="pane">
+              <div class="prev-card">
+                <div class="prev-top">
+                  <span class="prev-title" id="skillPrevTitle">SKILL.md — preview</span>
+                  <button class="mini-btn" onclick="copySkillMD()">copiar</button>
+                </div>
+                <div class="prev-body" id="sPrev"></div>
+              </div>
+              <div class="field">
+                <div class="field-label">Caminho <span class="ftag">estrutura</span></div>
+                <div class="pf">
+                  <span class="pf-pre">.claude/skills/</span>
+                  <input class="pf-in" id="sPath" placeholder="nome-da-skill/SKILL.md" oninput="dirty();skillPreview()">
+                </div>
+                <div class="hint">// Ou ~/.claude/skills/ para uso global em todos os projetos.</div>
+              </div>
+              <div class="field">
+                <div class="field-label">Slash command <span class="ftag">opcional</span></div>
+                <div class="pf">
+                  <span class="pf-pre">/</span>
+                  <input class="pf-in" id="sCmd" placeholder="nome-do-comando" oninput="dirty();skillPreview()">
+                </div>
+              </div>
+              <button class="install-btn skill-style" onclick="openSkillModal()">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Ver instruções de instalação
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: references/ -->
+        <div id="skillTabRefs" style="display:none;flex:1;overflow:hidden;flex-direction:column">
+          <div class="ed-content">
+            <div class="pane pane-l">
+              <div class="field" style="flex:1">
+                <div class="field-label">references/main.md <span class="ftag">opcional</span></div>
+                <textarea class="ctrl" id="sRef" rows="22" placeholder="# Referências adicionais&#10;&#10;Conteúdo técnico, exemplos, tabelas ou guias que Claude consultará sob demanda..." oninput="dirty()"></textarea>
+                <div class="hint">// Claude só lê este arquivo quando as instruções do SKILL.md mandarem. Evite sobrecarga de contexto.</div>
+              </div>
+            </div>
+            <div class="pane">
+              <div class="prev-card" style="flex:1">
+                <div class="prev-top">
+                  <span class="prev-title">references/ — dica</span>
+                </div>
+                <div class="prev-body" style="color:var(--text3)">
+<span class="pteal"># Quando usar references/</span>
+
+Use este diretório para:
+- Documentação técnica extensa
+- Tabelas de configuração
+- Exemplos de código
+- Checklists de revisão
+
+<span class="pd">---</span>
+<span class="ph">Estrutura sugerida:</span>
+
+<span class="pk">references/</span>
+<span class="pv">  main.md</span>       ← referência principal
+<span class="pv">  aws.md</span>        ← variante por plataforma
+<span class="pv">  gcp.md</span>
+<span class="pv">  examples.md</span>   ← exemplos práticos
+
+<span class="pd">---</span>
+<span class="pc">// O SKILL.md deve mencionar</span>
+<span class="pc">// explicitamente quando ler</span>
+<span class="pc">// cada arquivo de referência.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: scripts/ -->
+        <div id="skillTabScripts" style="display:none;flex:1;overflow:hidden;flex-direction:column">
+          <div class="ed-content">
+            <div class="pane pane-l">
+              <div class="field">
+                <div class="field-label">Linguagem <span class="ftag">scripts/</span></div>
+                <select class="ctrl" id="sLang">
+                  <option value="python">Python (.py)</option>
+                  <option value="node">Node.js (.js)</option>
+                  <option value="bash">Bash (.sh)</option>
+                </select>
+              </div>
+              <div class="field" style="flex:1">
+                <div class="field-label">scripts/main <span class="ftag">opcional</span></div>
+                <textarea class="ctrl" id="sScript" rows="20" placeholder="#!/usr/bin/env python3&#10;# Script executado pelo Claude durante o workflow da skill&#10;&#10;import sys&#10;&#10;def main():&#10;    data = sys.stdin.read()&#10;    # processar...&#10;    print(data)&#10;&#10;if __name__ == '__main__':&#10;    main()" oninput="dirty()"></textarea>
+              </div>
+            </div>
+            <div class="pane">
+              <div class="prev-card" style="flex:1">
+                <div class="prev-top"><span class="prev-title">scripts/ — dica</span></div>
+                <div class="prev-body" style="color:var(--text3)">
+<span class="pteal"># Quando usar scripts/</span>
+
+Use scripts para lógica determinística:
+- Validação e transformação de dados
+- Processamento de arquivos (CSV, Excel)
+- Geração de relatórios
+- Chamadas de API externas
+
+<span class="pd">---</span>
+<span class="ph">No SKILL.md, referencie assim:</span>
+
+<span class="pv">## Workflow</span>
+1. Leia o arquivo do usuário
+2. Execute <span class="pteal">scripts/main.py</span>
+   passando o caminho como argumento
+3. Apresente o resultado
+
+<span class="pd">---</span>
+<span class="pc">// Python e Node.js são</span>
+<span class="pc">// suportados nativamente.</span>
+<span class="pc">// Bash para automações simples.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ HOOKS VIEW ══ -->
+    <div id="view-hooks" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+      <div class="empty" id="hookEmpty">
+        <div class="empty-glyph" style="animation:none;color:var(--red);opacity:.35">&#9881;</div>
+        <div class="empty-title">Nenhum hook</div>
+        <div class="empty-sub">Hooks disparam shell commands automaticamente em momentos específicos do ciclo de vida do Claude Code.</div>
+        <div class="empty-row">
+          <button class="tbtn tbtn-red" onclick="newItem()">+ Criar hook</button>
+          <button class="tbtn" onclick="loadHookDemos()">Carregar exemplos</button>
+        </div>
+      </div>
+      <div id="hookEditor" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+        <div class="ed-header">
+          <div class="ed-name-wrap">
+            <input class="ed-name" id="hName" placeholder="Nome do hook..." oninput="dirty();hookPreview()">
+            <span id="hBadge" class="badge badge-pretool">PRE-TOOL</span>
+          </div>
+          <div class="ed-actions">
+            <button class="tbtn tbtn-danger" onclick="delItem('hook')">Excluir</button>
+            <button class="tbtn" id="hCopyBtn" onclick="copyHookJSON()">Copiar JSON</button>
+            <button class="tbtn tbtn-red" id="hSaveBtn" onclick="saveHook()">Salvar</button>
+          </div>
+        </div>
+
+        <div class="ed-content">
+          <!-- LEFT -->
+          <div class="pane pane-l">
+            <div class="field">
+              <div class="field-label">Evento <span class="ftag">lifecycle</span></div>
+              <div class="event-grid" id="eventGrid"></div>
+              <div class="hint" style="margin-top:4px">// Define em qual momento do ciclo de vida o hook é acionado.</div>
+            </div>
+
+            <div class="field">
+              <div class="field-label">Matcher <span class="ftag">filtro opcional</span></div>
+              <div class="matcher-row" id="matcherChips"></div>
+              <input class="ctrl" id="hMatcherCustom" placeholder="Regex personalizado, ex: Edit|Write" style="margin-top:6px" oninput="dirty();hookPreview()">
+              <div class="hint">// Filtra por ferramenta. Deixe em branco para aplicar a todos.</div>
+            </div>
+
+            <div class="field">
+              <div class="field-label">Comando shell <span class="ftag">command</span></div>
+              <textarea class="ctrl" id="hCommand" rows="4" placeholder="Ex: prettier --write $FILE&#10;Ex: npm test&#10;Ex: notify-send 'Claude terminou'" oninput="dirty();hookPreview()"></textarea>
+              <div class="hint">// Comando executado quando o evento disparar. Use variáveis de ambiente do Claude Code.</div>
+            </div>
+
+            <div class="field">
+              <div class="field-label">Exit code <span class="ftag">comportamento</span></div>
+              <div class="exit-row" id="exitRow">
+                <div class="exit-opt" data-code="0" onclick="selExit(0)">
+                  <div class="exit-label" style="color:var(--green)">exit 0</div>
+                  <div class="exit-desc">Permite a ação</div>
+                </div>
+                <div class="exit-opt" data-code="2" onclick="selExit(2)">
+                  <div class="exit-label" style="color:var(--red)">exit 2</div>
+                  <div class="exit-desc">Bloqueia a ação</div>
+                </div>
+              </div>
+              <div class="hint">// exit 0 = continua · exit 2 = bloqueia e envia feedback ao Claude.</div>
+            </div>
+
+            <div class="field">
+              <div class="field-label">Escopo <span class="ftag">scope</span></div>
+              <select class="ctrl" id="hScope" onchange="dirty();hookPreview()">
+                <option value="project">Projeto (.claude/settings.json)</option>
+                <option value="global">Global (~/.claude/settings.json)</option>
+              </select>
+              <div class="hint">// Projeto = só neste repositório. Global = todos os projetos.</div>
+            </div>
+          </div>
+
+          <!-- RIGHT -->
+          <div class="pane">
+            <div class="json-prev">
+              <div class="jp-top">
+                <span class="prev-title">settings.json — preview</span>
+                <button class="mini-btn" onclick="copyHookJSON()">copiar</button>
+              </div>
+              <div class="jp-body" id="hPrev"></div>
+            </div>
+
+            <div class="field">
+              <div class="field-label">Descrição <span class="ftag">anotação</span></div>
+              <textarea class="ctrl" id="hDesc" rows="3" placeholder="Ex: Formata arquivos JS/TS com Prettier após cada edição do Claude..." oninput="dirty()"></textarea>
+            </div>
+
+            <div class="field">
+              <div class="field-label">Variáveis disponíveis <span class="ftag">env</span></div>
+              <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;font-family:var(--mono);font-size:10px;line-height:2;color:var(--text3)">
+                <span style="color:var(--green)">$CLAUDE_SESSION_ID</span> — ID da sessão atual<br>
+                <span style="color:var(--green)">$CLAUDE_TOOL_NAME</span> &nbsp;— Ferramenta acionada<br>
+                <span style="color:var(--green)">$CLAUDE_FILE_PATH</span> &nbsp;— Arquivo sendo editado<br>
+                <span style="color:var(--green)">$CLAUDE_PROJECT_DIR</span> — Diretório do projeto<br>
+                <span style="color:var(--green)">$CLAUDE_PROMPT</span> &nbsp;&nbsp;&nbsp;&nbsp;— Prompt do usuário (UserPromptSubmit)
+              </div>
+            </div>
+
+            <button class="install-btn hook-style" onclick="openHookModal()">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Ver instruções de instalação
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="modal" style="display:none" onclick="maybeClose(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-h">
+      <div class="modal-title" id="modalTitle">Instalação</div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-b" id="modalBody"></div>
+    <div class="modal-f">
+      <button class="tbtn" onclick="closeModal()">Fechar</button>
+      <button class="tbtn tbtn-accent" id="modalCopyAll" onclick="copyAll()">Copiar tudo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   DATA & STATE
+════════════════════════════════════════════ */
+const TOOLS = ['Read','Glob','Grep','Edit','Write','MultiEdit','Bash','WebSearch','Task'];
+const TOOL_K = {Read:'read',Glob:'glob',Grep:'grep',Edit:'edit',Write:'write',MultiEdit:'multiedit',Bash:'bash',WebSearch:'websearch',Task:'task'};
+
+let agents  = JSON.parse(localStorage.getItem('cas_agents')  || '[]');
+let skills  = JSON.parse(localStorage.getItem('cas_skills')  || '[]');
+let hooks   = JSON.parse(localStorage.getItem('cas_hooks')   || '[]');
+let activeAgentId = null;
+let activeSkillId = null;
+let activeHookId  = null;
+let activeView    = 'agents';
+let selAgentTools = new Set();
+let selSkillTools = new Set();
+let selHookMatchers = new Set();
+let selExitCode   = 0;
+let selEvent      = 'PreToolUse';
+let isDirty = false;
+let _modalSteps = [];
+
+/* patterns */
+const PATTERNS = [
+  {id:'prompt',  label:'Prompt-only', color:'var(--teal)',   desc:'Só SKILL.md, sem scripts'},
+  {id:'script',  label:'+ Scripts',   color:'var(--amber)',  desc:'SKILL.md + scripts/'},
+  {id:'reference',label:'+ References',color:'var(--blue)', desc:'SKILL.md + references/'},
+  {id:'workflow',label:'Completo',    color:'var(--accent-h)',desc:'SKILL.md + scripts/ + references/'},
+];
+let selPattern = 'prompt';
+
+/* persist */
+function persist(){
+  localStorage.setItem('cas_agents', JSON.stringify(agents));
+  localStorage.setItem('cas_skills', JSON.stringify(skills));
+  localStorage.setItem('cas_hooks',  JSON.stringify(hooks));
+}
+
+/* keyboard */
+document.addEventListener('keydown', e => {
+  if((e.metaKey||e.ctrlKey) && e.key==='s'){ e.preventDefault(); activeView==='agents'?saveAgent():activeView==='skills'?saveSkill():saveHook(); }
+});
+
+/* ════════════════════════════════════════════
+   VIEW SWITCHING
+════════════════════════════════════════════ */
+function setView(v){
+  activeView = v;
+  ['agents','skills','hooks'].forEach(n=>{
+    document.getElementById('nav-'+n).classList.toggle('active', n===v);
+    document.getElementById('view-'+n).style.display = n===v ? 'flex' : 'none';
+  });
+  const isSkill = v==='skills', isHook = v==='hooks';
+  document.getElementById('sbLabel').textContent     = isSkill?'Minhas skills':isHook?'Meus hooks':'Meus agentes';
+  document.getElementById('btnNewLabel').textContent = isSkill?'Nova skill':isHook?'Novo hook':'Novo agente';
+  const btn = document.getElementById('btnNew');
+  btn.classList.toggle('skill-mode', isSkill);
+  btn.classList.toggle('hook-mode',  isHook);
+  renderSidebar();
+}
+
+/* ════════════════════════════════════════════
+   SIDEBAR
+════════════════════════════════════════════ */
+function renderSidebar(){
+  const items = activeView==='agents'?agents:activeView==='skills'?skills:hooks;
+  const activeId = activeView==='agents'?activeAgentId:activeView==='skills'?activeSkillId:activeHookId;
+  document.getElementById('itemList').innerHTML = items.map(it=>`
+    <div class="li-item${it.id===activeId?' active':''}" onclick="selectItem(${it.id})">
+      <div class="li-row">
+        <span class="li-dot dot-${it.type||'custom'}"></span>
+        <span class="li-name">${esc(it.name||'Sem nome')}</span>
+        <span class="li-type">${it.type||'custom'}</span>
+      </div>
+      <div class="li-desc">${esc(it.desc||it.command||'sem descrição')}</div>
+    </div>`).join('');
+  const n=items.length;
+  const lbl=activeView==='agents'?(n===1?'agente':'agentes'):activeView==='skills'?(n===1?'skill':'skills'):(n===1?'hook':'hooks');
+  document.getElementById('countEl').textContent=n+' '+lbl;
+}
+
+function newItem(){
+  const id=Date.now();
+  if(activeView==='agents'){
+    agents.push({id,name:'',type:'custom',desc:'',prompt:'',tools:[],path:'',cmd:''});
+    persist(); selectItem(id);
+  } else if(activeView==='skills'){
+    skills.push({id,name:'',type:'prompt',desc:'',body:'',tools:[],path:'',cmd:'',ref:'',script:'',lang:'python',pattern:'prompt'});
+    persist(); selectItem(id);
+  } else if(activeView==='hooks'){
+    hooks.push({id,name:'',type:'pretool',event:'PreToolUse',matcher:'',command:'',exitCode:0,scope:'project',desc:''});
+    persist(); selectItem(id);
+  }
+}
+
+function selectItem(id){
+  if(activeView==='agents') selectAgent(id);
+  else if(activeView==='skills') selectSkill(id);
+  else if(activeView==='hooks') selectHook(id);
+}
+
+function delItem(which){
+  if(which==='agent'){
+    if(!activeAgentId||!confirm('Excluir este agente?')) return;
+    agents=agents.filter(a=>a.id!==activeAgentId); activeAgentId=null; persist();
+    document.getElementById('agentEmpty').style.display='flex';
+    document.getElementById('agentEditor').style.display='none';
+  } else if(which==='skill'){
+    if(!activeSkillId||!confirm('Excluir esta skill?')) return;
+    skills=skills.filter(s=>s.id!==activeSkillId); activeSkillId=null; persist();
+    document.getElementById('skillEmpty').style.display='flex';
+    document.getElementById('skillEditor').style.display='none';
+  } else if(which==='hook'){
+    if(!activeHookId||!confirm('Excluir este hook?')) return;
+    hooks=hooks.filter(h=>h.id!==activeHookId); activeHookId=null; persist();
+    document.getElementById('hookEmpty').style.display='flex';
+    document.getElementById('hookEditor').style.display='none';
+  }
+  renderSidebar();
+}
+
+/* ════════════════════════════════════════════
+   AGENTS
+════════════════════════════════════════════ */
+const AGENT_TPL = {
+  coder:{desc:'Use para implementar features, corrigir bugs, refatorar código e fazer code review.',prompt:'Você é um engenheiro de software sênior especializado em código de alta qualidade.\n\nAo trabalhar em código:\n- Leia os arquivos relevantes antes de editar\n- Siga os padrões e convenções existentes no projeto\n- Escreva testes quando aplicável\n- Explique as mudanças de forma clara\n- Prefira soluções simples, legíveis e bem testadas',tools:['Read','Glob','Grep','Edit','Write','Bash']},
+  writer:{desc:'Use para criar, revisar e melhorar textos, documentação técnica e READMEs.',prompt:'Você é um redator técnico especializado em comunicação clara.\n\nAo criar conteúdo:\n- Adapte o tom ao público-alvo\n- Estruture de forma clara e lógica\n- Use linguagem objetiva e acessível\n- Revise gramática e estilo',tools:['Read','Glob','WebSearch']},
+  analyst:{desc:'Use para analisar dados, gerar relatórios e identificar padrões em datasets.',prompt:'Você é um analista de dados especializado em insights acionáveis.\n\nAo analisar:\n- Entenda a estrutura dos dados primeiro\n- Identifique padrões e anomalias\n- Apresente resultados de forma clara\n- Documente metodologia e premissas',tools:['Read','Glob','Grep','Bash','WebSearch']},
+  custom:{desc:'',prompt:'',tools:[]}
+};
+
+function selectAgent(id){
+  activeAgentId = id;
+  const a = agents.find(x=>x.id===id); if(!a) return;
+  document.getElementById('agentEmpty').style.display='none';
+  document.getElementById('agentEditor').style.display='flex';
+  document.getElementById('aName').value   = a.name   ||'';
+  document.getElementById('aType').value   = a.type   ||'custom';
+  document.getElementById('aDesc').value   = a.desc   ||'';
+  document.getElementById('aPrompt').value = a.prompt ||'';
+  document.getElementById('aPath').value   = a.path   ||'';
+  document.getElementById('aCmd').value    = a.cmd    ||'';
+  selAgentTools = new Set(a.tools||[]);
+  isDirty=false; renderAgentTools(); agentPreview(); updateBadge('agent'); renderSidebar();
+}
+
+function applyAgentTpl(){
+  const t = AGENT_TPL[document.getElementById('aType').value];
+  if(!t || document.getElementById('aType').value==='custom') return;
+  if(!document.getElementById('aDesc').value && !document.getElementById('aPrompt').value){
+    document.getElementById('aDesc').value   = t.desc;
+    document.getElementById('aPrompt').value = t.prompt;
+    selAgentTools = new Set(t.tools); renderAgentTools();
+  }
+}
+
+function updateBadge(which){
+  if(which==='agent'){
+    const type = document.getElementById('aType').value;
+    const labels={coder:'CODER',writer:'WRITER',analyst:'ANALYST',custom:'CUSTOM'};
+    const b=document.getElementById('aBadge'); b.className='badge badge-'+type; b.textContent=labels[type]||'CUSTOM';
+  } else {
+    const type = selPattern;
+    const labels={prompt:'PROMPT',script:'SCRIPT',reference:'REFERENCE',workflow:'WORKFLOW'};
+    const b=document.getElementById('sBadge'); b.className='badge badge-'+type; b.textContent=labels[type]||'PROMPT';
+  }
+}
+
+function renderAgentTools(){
+  document.getElementById('aTools').innerHTML = TOOLS.map(t=>{
+    const k=TOOL_K[t]||t.toLowerCase(); const on=selAgentTools.has(t)?' on-'+k:'';
+    return `<span class="chip${on}" onclick="toggleAgentTool('${t}')">${t}</span>`;
+  }).join('');
+}
+
+function toggleAgentTool(t){ selAgentTools.has(t)?selAgentTools.delete(t):selAgentTools.add(t); renderAgentTools(); agentPreview(); dirty(); }
+
+function genAgentMD(){
+  const name=document.getElementById('aName').value||'agente';
+  const desc=document.getElementById('aDesc').value;
+  const prompt=document.getElementById('aPrompt').value;
+  const tools=[...selAgentTools];
+  const cmd=document.getElementById('aCmd').value;
+  let out='---\n';
+  out+=`name: ${name}\n`;
+  if(desc) out+=`description: >\n  ${desc.replace(/\n/g,'\n  ')}\n`;
+  if(tools.length) out+=`allowed-tools: ${tools.join(', ')}\n`;
+  if(cmd) out+=`slash-command: /${cmd}\n`;
+  out+='---\n\n';
+  out+=prompt||'# Instruções\n\nDescreva o comportamento do agente aqui.';
+  return out;
+}
+
+function agentPreview(){
+  document.getElementById('aPrev').innerHTML = colorize(genAgentMD());
+}
+
+function copyAgentMD(){
+  navigator.clipboard.writeText(genAgentMD());
+  const b=document.getElementById('aCopyBtn'); b.textContent='Copiado!'; setTimeout(()=>b.textContent='Copiar MD',1400);
+  toast('Markdown copiado.');
+}
+
+function saveAgent(){
+  const a=agents.find(x=>x.id===activeAgentId); if(!a) return;
+  a.name=document.getElementById('aName').value; a.type=document.getElementById('aType').value;
+  a.desc=document.getElementById('aDesc').value; a.prompt=document.getElementById('aPrompt').value;
+  a.tools=[...selAgentTools]; a.path=document.getElementById('aPath').value; a.cmd=document.getElementById('aCmd').value;
+  persist(); renderSidebar(); isDirty=false;
+  const b=document.getElementById('aSaveBtn'); b.textContent='Salvo!'; setTimeout(()=>b.textContent='Salvar',1400);
+  toast('Agente "'+a.name+'" salvo.');
+}
+
+function loadAgentDemos(){
+  agents=[
+    {id:3001,name:'Revisor de PR',type:'coder',desc:'Use para revisar pull requests, analisar diffs e sugerir melhorias antes do merge.',prompt:'Você é um revisor de código experiente.\n\nAo revisar um PR:\n- Verifique segurança, performance e boas práticas\n- Aponte problemas críticos com prioridade alta\n- Sugira melhorias sem ser prescritivo\n- Seja construtivo e objetivo',tools:['Read','Glob','Grep','Bash'],path:'revisor-pr.md',cmd:'revisar-pr'},
+    {id:3002,name:'Gerador de docs',type:'writer',desc:'Use para gerar e atualizar documentação técnica, READMEs e comentários de código.',prompt:'Você é um especialista em documentação técnica.\n\nGere documentação clara e útil seguindo as convenções do projeto.',tools:['Read','Glob','Grep','Edit','Write'],path:'gerador-docs.md',cmd:'gerar-docs'},
+    {id:3003,name:'Analista de CSV',type:'analyst',desc:'Use para analisar arquivos CSV e Excel e gerar relatórios de insights.',prompt:'Você é um analista de dados sênior.\n\nAnalise dados com rigor e apresente insights acionáveis.',tools:['Read','Bash','WebSearch'],path:'analista.md',cmd:''}
+  ];
+  persist(); renderSidebar(); selectAgent(agents[0].id); toast('Exemplos de agentes carregados.');
+}
+
+/* ════════════════════════════════════════════
+   SKILLS
+════════════════════════════════════════════ */
+const SKILL_TPL = {
+  prompt: {
+    desc:'Use quando o usuário pedir para formatar mensagens de commit seguindo Conventional Commits.',
+    body:'# Commit Message Formatter\n\nFormate todas as mensagens de commit seguindo Conventional Commits 1.0.0.\n\n## Formato\n<type>(<scope>): <description>\n\n## Tipos aceitos\n- feat: nova funcionalidade\n- fix: correção de bug\n- docs: documentação\n- refactor: refatoração\n- test: testes\n- chore: manutenção\n\n## Regras\n- Imperativo, minúsculas, sem ponto final\n- Máximo 72 caracteres por linha\n\n## Exemplo\nInput: "adicionei autenticação JWT"\nOutput: `feat(auth): implement JWT authentication`',
+    tools:[]
+  },
+  script: {
+    desc:'Use quando o usuário solicitar análise de arquivos CSV de vendas ou dados de e-commerce.',
+    body:'# Sales Data Analyzer\n\n## Workflow\n\n1. Verifique se o arquivo é CSV ou Excel\n2. Execute `scripts/validate_schema.js` para validar colunas\n3. Se válido, rode `scripts/analyze.py` com o caminho do arquivo\n4. Apresente os resultados com tabelas e insights\n5. Sugira 3 ações baseadas nos dados\n\n## Output esperado\n- Resumo de KPIs principais\n- Tabela de tendências\n- Top 3 recomendações',
+    tools:['Read','Bash']
+  },
+  reference: {
+    desc:'Use quando o usuário pedir revisão de código para segurança, especialmente APIs e autenticação.',
+    body:'# Security Code Reviewer\n\n## Workflow\n\n1. Leia os arquivos relevantes do projeto\n2. Consulte `references/owasp-checklist.md` para os critérios\n3. Analise o código contra cada item do checklist\n4. Produza um relatório estruturado\n\n## Formato do relatório\n- Crítico: [lista de problemas]\n- Aviso: [lista de avisos]\n- OK: [itens validados]',
+    tools:['Read','Glob','Grep']
+  },
+  workflow: {
+    desc:'Use para implementar uma feature completa do início ao fim, desde pesquisa até testes.',
+    body:'# Full Feature Workflow\n\n## Fases\n\n### 1. Exploração\n- Leia a codebase para entender o contexto\n- Consulte `references/architecture.md`\n- Identifique arquivos que serão afetados\n\n### 2. Planejamento\n- Crie um plano de implementação\n- Liste arquivos a criar/modificar\n- Confirme com o usuário antes de prosseguir\n\n### 3. Implementação\n- Implemente seguindo os padrões do projeto\n- Execute `scripts/lint.sh` após cada arquivo\n\n### 4. Validação\n- Rode os testes\n- Verifique `references/review-checklist.md`\n- Produza um resumo das mudanças',
+    tools:['Read','Glob','Grep','Edit','Write','Bash']
+  }
+};
+
+function renderPatterns(){
+  document.getElementById('patternGrid').innerHTML = PATTERNS.map(p=>`
+    <div class="pattern-card${selPattern===p.id?' selected':''}" onclick="selectPattern('${p.id}')">
+      <div class="pattern-card-title">
+        <span class="pattern-dot" style="background:${p.color}"></span>
+        ${p.label}
+      </div>
+      <div class="pattern-card-desc">${p.desc}</div>
+    </div>`).join('');
+}
+
+function selectPattern(id){
+  selPattern = id;
+  renderPatterns(); updateBadge('skill');
+  // apply template if fields empty
+  const t = SKILL_TPL[id];
+  if(t && !document.getElementById('sDesc').value && !document.getElementById('sBody').value){
+    document.getElementById('sDesc').value = t.desc;
+    document.getElementById('sBody').value = t.body;
+    selSkillTools = new Set(t.tools); renderSkillTools();
+  }
+  // show/hide tabs
+  const hasScripts = id==='script'||id==='workflow';
+  const hasRefs    = id==='reference'||id==='workflow';
+  document.getElementById('tab-scripts').style.display = hasScripts?'':'none';
+  document.getElementById('tab-refs').style.display    = hasRefs   ?'':'none';
+  skillPreview(); dirty();
+}
+
+function switchSkillTab(tab){
+  ['main','refs','scripts'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+    document.getElementById('skillTab'+t.charAt(0).toUpperCase()+t.slice(1)).style.display = t===tab?'flex':'none';
+  });
+}
+
+function selectSkill(id){
+  activeSkillId = id;
+  const s = skills.find(x=>x.id===id); if(!s) return;
+  document.getElementById('skillEmpty').style.display='none';
+  document.getElementById('skillEditor').style.display='flex';
+  document.getElementById('sName').value   = s.name   ||'';
+  document.getElementById('sDesc').value   = s.desc   ||'';
+  document.getElementById('sBody').value   = s.body   ||'';
+  document.getElementById('sPath').value   = s.path   ||'';
+  document.getElementById('sCmd').value    = s.cmd    ||'';
+  document.getElementById('sRef').value    = s.ref    ||'';
+  document.getElementById('sScript').value = s.script ||'';
+  if(s.lang) document.getElementById('sLang').value = s.lang;
+  selPattern = s.pattern||'prompt';
+  selSkillTools = new Set(s.tools||[]);
+  isDirty=false; renderPatterns(); renderSkillTools(); switchSkillTab('main');
+  selectPattern(selPattern); skillPreview(); updateBadge('skill'); renderSidebar();
+}
+
+function renderSkillTools(){
+  document.getElementById('sTools').innerHTML = TOOLS.map(t=>{
+    const k=TOOL_K[t]||t.toLowerCase(); const on=selSkillTools.has(t)?' on-'+k:'';
+    return `<span class="chip${on}" onclick="toggleSkillTool('${t}')">${t}</span>`;
+  }).join('');
+}
+
+function toggleSkillTool(t){ selSkillTools.has(t)?selSkillTools.delete(t):selSkillTools.add(t); renderSkillTools(); skillPreview(); dirty(); }
+
+function genSkillMD(){
+  const name=document.getElementById('sName').value||'minha-skill';
+  const desc=document.getElementById('sDesc').value;
+  const body=document.getElementById('sBody').value;
+  const tools=[...selSkillTools];
+  const cmd=document.getElementById('sCmd').value;
+  let out='---\n';
+  out+=`name: ${name}\n`;
+  if(desc) out+=`description: >\n  ${desc.replace(/\n/g,'\n  ')}\n`;
+  if(tools.length) out+=`allowed-tools: ${tools.join(', ')}\n`;
+  if(cmd) out+=`slash-command: /${cmd}\n`;
+  out+='---\n\n';
+  out+=body||'# Instruções\n\nDescreva o workflow da skill aqui.';
+  return out;
+}
+
+function skillPreview(){
+  const md=genSkillMD();
+  document.getElementById('sPrev').innerHTML = colorize(md);
+  const path=document.getElementById('sPath').value||'nome-da-skill/SKILL.md';
+  document.getElementById('skillPrevTitle').textContent = '.claude/skills/'+path+' — preview';
+}
+
+function copySkillMD(){
+  navigator.clipboard.writeText(genSkillMD());
+  const b=document.getElementById('sCopyBtn'); b.textContent='Copiado!'; setTimeout(()=>b.textContent='Copiar MD',1400);
+  toast('Markdown copiado.');
+}
+
+function saveSkill(){
+  const s=skills.find(x=>x.id===activeSkillId); if(!s) return;
+  s.name=document.getElementById('sName').value; s.type=selPattern;
+  s.desc=document.getElementById('sDesc').value; s.body=document.getElementById('sBody').value;
+  s.tools=[...selSkillTools]; s.path=document.getElementById('sPath').value;
+  s.cmd=document.getElementById('sCmd').value; s.pattern=selPattern;
+  s.ref=document.getElementById('sRef').value; s.script=document.getElementById('sScript').value;
+  s.lang=document.getElementById('sLang').value;
+  persist(); renderSidebar(); isDirty=false;
+  const b=document.getElementById('sSaveBtn'); b.textContent='Salvo!'; setTimeout(()=>b.textContent='Salvar',1400);
+  toast('Skill "'+s.name+'" salva.');
+}
+
+function loadSkillDemos(){
+  skills=[
+    {id:4001,name:'Commit Formatter',type:'prompt',pattern:'prompt',desc:'Use para formatar mensagens de commit seguindo Conventional Commits.',body:'# Commit Message Formatter\n\nFormate todas as mensagens de commit seguindo Conventional Commits 1.0.0.\n\n## Formato\n<type>(<scope>): <description>\n\n## Regras\n- Imperativo, minúsculas, sem ponto final, máximo 72 chars\n\n## Exemplo\nInput: "adicionei auth JWT"\nOutput: `feat(auth): implement JWT authentication`',tools:[],path:'commit-formatter/SKILL.md',cmd:'commit',ref:'',script:'',lang:'python'},
+    {id:4002,name:'Security Reviewer',type:'reference',pattern:'reference',desc:'Use para revisar código em busca de vulnerabilidades de segurança seguindo OWASP.',body:'# Security Code Reviewer\n\n## Workflow\n1. Leia os arquivos de código indicados\n2. Consulte `references/main.md` com o checklist OWASP\n3. Classifique cada issue como Crítico, Aviso ou OK\n4. Gere relatório estruturado',tools:['Read','Glob','Grep'],path:'security-reviewer/SKILL.md',cmd:'revisar-seguranca',ref:'# OWASP Top 10 Checklist\n\n## A01 - Broken Access Control\n- [ ] Verificar autorizações em todas as rotas\n- [ ] Checar IDOR vulnerabilities\n\n## A02 - Cryptographic Failures\n- [ ] Dados sensíveis em trânsito usam TLS\n- [ ] Senhas usam bcrypt/argon2\n\n## A03 - Injection\n- [ ] Queries parametrizadas\n- [ ] Validação de input\n\n## A07 - Auth Failures\n- [ ] Tokens expiram corretamente\n- [ ] Rate limiting em login',script:'',lang:'python'},
+    {id:4003,name:'Data Analyzer',type:'script',pattern:'script',desc:'Use para analisar arquivos CSV e Excel de dados de vendas e gerar relatórios.',body:'# Sales Data Analyzer\n\n## Workflow\n1. Verifique o tipo do arquivo (CSV ou Excel)\n2. Execute `scripts/main.py` passando o caminho do arquivo\n3. Apresente os resultados com KPIs e tendências\n4. Sugira 3 ações baseadas nos dados',tools:['Read','Bash'],path:'data-analyzer/SKILL.md',cmd:'analisar-dados',ref:'',script:'#!/usr/bin/env python3\nimport sys, csv\n\ndef analyze(path):\n    with open(path) as f:\n        rows = list(csv.DictReader(f))\n    print(f"Linhas: {len(rows)}")\n    print(f"Colunas: {list(rows[0].keys()) if rows else []}")\n\nif __name__ == "__main__":\n    analyze(sys.argv[1])',lang:'python'}
+  ];
+  persist(); renderSidebar(); selectSkill(skills[0].id); toast('Exemplos de skills carregados.');
+}
+
+/* ════════════════════════════════════════════
+   SHARED UTILS
+════════════════════════════════════════════ */
+function dirty(){ isDirty=true; }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function colorize(md){
+  return md.split('\n').map(l=>{
+    if(l==='---') return `<span class="pd">---</span>`;
+    const m=l.match(/^([\w-]+):\s(.+)/);
+    if(m) return `<span class="pk">${m[1]}:</span> <span class="pv">${m[2]}</span>`;
+    if(l.match(/^#+\s/)) return `<span class="ph">${l}</span>`;
+    if(l.startsWith('  ')) return `<span class="pc">${l}</span>`;
+    return l||' ';
+  }).join('\n');
+}
+
+/* ════════════════════════════════════════════
+   INSTALL MODALS
+════════════════════════════════════════════ */
+function openAgentModal(){
+  const name    = document.getElementById('aName').value||'meu-agente';
+  const rawPath = document.getElementById('aPath').value||name.toLowerCase().replace(/\s+/g,'-')+'.md';
+  const path    = '.claude/agents/'+rawPath;
+  const cmd     = document.getElementById('aCmd').value;
+  const md      = genAgentMD();
+  _modalSteps=[
+    {title:'Instale o Claude Code',desc:'Execute no terminal:',code:'npm install -g @anthropic-ai/claude-code'},
+    {title:'Crie a pasta de agentes',desc:'Na raiz do seu projeto:',code:'mkdir -p .claude/agents'},
+    {title:'Crie o arquivo do agente',desc:`Salve em <code>${path}</code>:`,code:`cat > ${path} << 'EOF'\n${md}\nEOF`},
+    {title:'Verifique no Claude Code',desc:'Inicie e liste os agentes:',code:`claude\n/agents`},
+    ...(cmd?[{title:'Use o slash command',desc:`O comando <code>/${cmd}</code> está disponível:`,code:`/${cmd}`}]:[]),
+    {title:'Instalação global (opcional)',desc:'Para usar em todos os projetos:',code:`mkdir -p ~/.claude/agents\ncp ${path} ~/.claude/agents/${rawPath}`}
+  ];
+  showModal('Instalar agente: '+name, 'accent');
+}
+
+function openSkillModal(){
+  const name    = document.getElementById('sName').value||'minha-skill';
+  const rawPath = document.getElementById('sPath').value||name.toLowerCase().replace(/\s+/g,'-')+'/SKILL.md';
+  const skillDir= rawPath.replace('/SKILL.md','');
+  const fullPath= '.claude/skills/'+rawPath;
+  const cmd     = document.getElementById('sCmd').value;
+  const md      = genSkillMD();
+  const hasScript = selPattern==='script'||selPattern==='workflow';
+  const hasRef    = selPattern==='reference'||selPattern==='workflow';
+  _modalSteps=[
+    {title:'Instale o Claude Code',desc:'Execute no terminal:',code:'npm install -g @anthropic-ai/claude-code'},
+    {title:'Crie a estrutura da skill',desc:'Crie os diretórios necessários:',code:`mkdir -p .claude/skills/${skillDir}${hasScript?'\nmkdir -p .claude/skills/'+skillDir+'/scripts':''}${hasRef?'\nmkdir -p .claude/skills/'+skillDir+'/references':''}`},
+    {title:'Crie o SKILL.md',desc:`Salve em <code>${fullPath}</code>:`,code:`cat > ${fullPath} << 'EOF'\n${md}\nEOF`},
+    ...(hasRef?[{title:'Crie o arquivo de referência',desc:'Salve suas referências em:',code:`cat > .claude/skills/${skillDir}/references/main.md << 'EOF'\n${document.getElementById('sRef').value||'# Referências\n\nAdicione seu conteúdo aqui.'}\nEOF`}]:[]),
+    ...(hasScript?[{title:'Crie o script',desc:'Salve o script em:',code:`cat > .claude/skills/${skillDir}/scripts/main.${document.getElementById('sLang').value==='python'?'py':document.getElementById('sLang').value==='node'?'js':'sh'} << 'EOF'\n${document.getElementById('sScript').value||'# Script aqui'}\nEOF`}]:[]),
+    {title:'Verifique no Claude Code',desc:'Inicie e liste as skills:',code:`claude\n/skills`},
+    ...(cmd?[{title:'Use o slash command',desc:`O comando <code>/${cmd}</code> está disponível:`,code:`/${cmd}`}]:[]),
+  ];
+  showModal('Instalar skill: '+name, 'teal');
+}
+
+function showModal(title, theme){
+  document.getElementById('modalTitle').textContent = title;
+  const dotCls = theme==='teal'?'teal':theme==='red'?'red':'';
+  document.getElementById('modalBody').innerHTML = _modalSteps.map((s,i)=>`
+    <div class="step">
+      <div class="step-n ${dotCls}">${i+1}</div>
+      <div class="step-b">
+        <div class="step-t">${s.title}</div>
+        <div class="step-d">${s.desc}</div>
+        <div class="code-block">
+          <code>${esc(s.code)}</code>
+          <button class="code-copy" onclick="copyStep(this,${i})">copiar</button>
+        </div>
+      </div>
+    </div>`).join('');
+  const copyAllBtn = document.getElementById('modalCopyAll');
+  copyAllBtn.className = theme==='teal'?'tbtn tbtn-teal':theme==='red'?'tbtn tbtn-red':'tbtn tbtn-accent';
+  document.getElementById('modal').style.display='flex';
+}
+
+function closeModal(){ document.getElementById('modal').style.display='none'; }
+function maybeClose(e){ if(e.target===document.getElementById('modal')) closeModal(); }
+
+function copyStep(btn,i){
+  navigator.clipboard.writeText(_modalSteps[i].code);
+  const orig=btn.textContent; btn.textContent='copiado!'; setTimeout(()=>btn.textContent=orig,1400);
+}
+
+function copyAll(){
+  const all=_modalSteps.map((s,i)=>'## '+(i+1)+'. '+s.title+'\n'+s.code).join('\n\n');
+  navigator.clipboard.writeText(all);
+  toast('Todas as instruções copiadas!');
+}
+
+/* ════════════════════════════════════════════
+   TOAST
+════════════════════════════════════════════ */
+function toast(msg){
+  const el=document.createElement('div'); el.className='toast'; el.textContent=msg;
+  document.body.appendChild(el); setTimeout(()=>el.remove(),2400);
+}
+
+/* ════════════════════════════════════════════
+   HOOKS
+════════════════════════════════════════════ */
+const HOOK_EVENTS = [
+  {id:'PreToolUse',    type:'pretool',       color:'var(--red)',      label:'PreToolUse',      desc:'Antes de qualquer ferramenta'},
+  {id:'PostToolUse',   type:'posttool',      color:'var(--amber)',    label:'PostToolUse',     desc:'Após ferramenta concluir'},
+  {id:'UserPromptSubmit',type:'prompt-submit',color:'var(--accent-h)',label:'UserPromptSubmit',desc:'Ao enviar um prompt'},
+  {id:'SessionStart',  type:'sessionstart',  color:'var(--green)',    label:'SessionStart',    desc:'Início de sessão'},
+  {id:'SessionEnd',    type:'sessionend',    color:'var(--blue)',     label:'SessionEnd',      desc:'Fim de sessão'},
+  {id:'Stop',          type:'stop',          color:'var(--text3)',    label:'Stop',            desc:'Claude para de trabalhar'},
+];
+const HOOK_MATCHERS = ['Read','Edit','Write','Bash','Glob','Grep','MultiEdit','WebSearch'];
+
+function renderEventGrid(){
+  document.getElementById('eventGrid').innerHTML = HOOK_EVENTS.map(ev=>`
+    <div class="event-card${selEvent===ev.id?' selected':''}" onclick="selectEvent('${ev.id}')">
+      <div class="event-card-title">
+        <span class="event-dot" style="background:${ev.color}"></span>${ev.label}
+      </div>
+      <div class="event-card-desc">${ev.desc}</div>
+    </div>`).join('');
+}
+
+function selectEvent(id){
+  selEvent=id;
+  const ev=HOOK_EVENTS.find(e=>e.id===id);
+  // Show/hide matchers (only relevant for Pre/PostToolUse)
+  const showMatcher = id==='PreToolUse'||id==='PostToolUse';
+  document.getElementById('matcherChips').parentElement.style.opacity = showMatcher?'1':'.4';
+  if(!showMatcher){ selHookMatchers.clear(); document.getElementById('hMatcherCustom').value=''; }
+  renderEventGrid(); renderMatcherChips(); updateHookBadge(); hookPreview(); dirty();
+}
+
+function renderMatcherChips(){
+  document.getElementById('matcherChips').innerHTML = HOOK_MATCHERS.map(m=>`
+    <span class="mchip${selHookMatchers.has(m)?' on':''}" onclick="toggleMatcher('${m}')">${m}</span>`).join('');
+}
+
+function toggleMatcher(m){
+  selHookMatchers.has(m)?selHookMatchers.delete(m):selHookMatchers.add(m);
+  renderMatcherChips(); hookPreview(); dirty();
+}
+
+function selExit(code){
+  selExitCode=code;
+  document.querySelectorAll('.exit-opt').forEach(el=>{
+    const c=parseInt(el.dataset.code);
+    el.classList.toggle('sel-0', c===0&&code===0);
+    el.classList.toggle('sel-2', c===2&&code===2);
+  });
+  hookPreview(); dirty();
+}
+
+function updateHookBadge(){
+  const ev=HOOK_EVENTS.find(e=>e.id===selEvent)||HOOK_EVENTS[0];
+  const b=document.getElementById('hBadge');
+  b.className='badge badge-'+ev.type;
+  b.textContent=ev.label.toUpperCase();
+}
+
+function genHookJSON(){
+  const matcher = selHookMatchers.size>0
+    ? [...selHookMatchers].join('|')
+    : (document.getElementById('hMatcherCustom').value||'');
+  const cmd = document.getElementById('hCommand').value||'echo "hook"';
+  const obj = {hooks:{[selEvent]:[{...(matcher?{matcher}:{}),hooks:[{type:'command',command:cmd}]}]}};
+  return JSON.stringify(obj, null, 2);
+}
+
+function hookPreview(){
+  const matcher = selHookMatchers.size>0
+    ? [...selHookMatchers].join('|')
+    : (document.getElementById('hMatcherCustom').value||'');
+  const cmd = document.getElementById('hCommand').value||'echo "hook"';
+  const exit = selExitCode;
+  const scope= document.getElementById('hScope')?.value||'project';
+  const path = scope==='project'?'.claude/settings.json':'~/.claude/settings.json';
+
+  const lines = [
+    `<span class="jc">// ${path}</span>`,
+    `{`,
+    `  <span class="jk">"hooks"</span>: {`,
+    `    <span class="jk">"${selEvent}"</span>: [`,
+    `      {`,
+    ...(matcher?[`        <span class="jk">"matcher"</span>: <span class="js">"${matcher}"</span>,`]:[]),
+    `        <span class="jk">"hooks"</span>: [`,
+    `          {`,
+    `            <span class="jk">"type"</span>: <span class="js">"command"</span>,`,
+    `            <span class="jk">"command"</span>: <span class="js">"${cmd.replace(/"/g,'\\"').replace(/\n/g,'\\n')}"</span>`,
+    `          }`,
+    `        ]`,
+    `      }`,
+    `    ]`,
+    `  }`,
+    `}`,
+    ``,
+    `<span class="jc">// exit code: ${exit===0?'0 → permite ação':'2 → bloqueia ação'}</span>`,
+  ];
+  document.getElementById('hPrev').innerHTML = lines.join('\n');
+}
+
+function copyHookJSON(){
+  navigator.clipboard.writeText(genHookJSON());
+  const b=document.getElementById('hCopyBtn'); b.textContent='Copiado!'; setTimeout(()=>b.textContent='Copiar JSON',1400);
+  toast('JSON copiado.');
+}
+
+function selectHook(id){
+  activeHookId=id;
+  const h=hooks.find(x=>x.id===id); if(!h) return;
+  document.getElementById('hookEmpty').style.display='none';
+  document.getElementById('hookEditor').style.display='flex';
+  document.getElementById('hName').value    = h.name||'';
+  document.getElementById('hCommand').value = h.command||'';
+  document.getElementById('hDesc').value    = h.desc||'';
+  document.getElementById('hScope').value   = h.scope||'project';
+  document.getElementById('hMatcherCustom').value = h.matcherCustom||'';
+  selEvent       = h.event||'PreToolUse';
+  selExitCode    = h.exitCode||0;
+  selHookMatchers= new Set(h.matchers||[]);
+  isDirty=false;
+  renderEventGrid(); renderMatcherChips(); selExit(selExitCode); updateHookBadge(); hookPreview(); renderSidebar();
+}
+
+function saveHook(){
+  const h=hooks.find(x=>x.id===activeHookId); if(!h) return;
+  h.name   = document.getElementById('hName').value;
+  h.event  = selEvent;
+  h.type   = (HOOK_EVENTS.find(e=>e.id===selEvent)||{}).type||'pretool';
+  h.matchers=[...selHookMatchers];
+  h.matcherCustom=document.getElementById('hMatcherCustom').value;
+  h.command= document.getElementById('hCommand').value;
+  h.exitCode=selExitCode;
+  h.scope  = document.getElementById('hScope').value;
+  h.desc   = document.getElementById('hDesc').value;
+  persist(); renderSidebar(); isDirty=false;
+  const b=document.getElementById('hSaveBtn'); b.textContent='Salvo!'; setTimeout(()=>b.textContent='Salvar',1400);
+  toast('Hook "'+h.name+'" salvo.');
+}
+
+function loadHookDemos(){
+  hooks=[
+    {id:5001,name:'Auto Prettier',event:'PostToolUse',type:'posttool',matchers:['Edit','Write','MultiEdit'],matcherCustom:'',
+     command:'prettier --write "$CLAUDE_FILE_PATH"',exitCode:0,scope:'project',
+     desc:'Formata arquivos JS/TS/CSS automaticamente com Prettier após cada edição.'},
+    {id:5002,name:'Bloquear rm -rf',event:'PreToolUse',type:'pretool',matchers:['Bash'],matcherCustom:'',
+     command:'#!/bin/bash\nINPUT=$(cat)\nCMD=$(echo "$INPUT" | grep -o "rm -rf[^\"]*")\nif [ -n "$CMD" ]; then\n  echo "Bloqueado: rm -rf não é permitido" >&2\n  exit 2\nfi\nexit 0',
+     exitCode:2,scope:'global',desc:'Bloqueia comandos rm -rf em qualquer sessão do Claude Code.'},
+    {id:5003,name:'Notificação de conclusão',event:'Stop',type:'stop',matchers:[],matcherCustom:'',
+     command:'osascript -e \'display notification "Claude terminou!" with title "Claude Code"\'',
+     exitCode:0,scope:'global',desc:'Envia notificação desktop quando Claude terminar de trabalhar (macOS).'},
+    {id:5004,name:'Auto rodar testes',event:'PostToolUse',type:'posttool',matchers:['Edit','Write'],matcherCustom:'',
+     command:'npm test --silent 2>&1 | tail -5',exitCode:0,scope:'project',
+     desc:'Roda a suite de testes automaticamente após edições de código.'},
+  ];
+  persist(); renderSidebar(); selectHook(hooks[0].id); toast('Exemplos de hooks carregados.');
+}
+
+function openHookModal(){
+  const h=hooks.find(x=>x.id===activeHookId)||{};
+  const name=document.getElementById('hName').value||'meu-hook';
+  const scope=document.getElementById('hScope').value||'project';
+  const path=scope==='project'?'.claude/settings.json':'~/.claude/settings.json';
+  const json=genHookJSON();
+  _modalSteps=[
+    {title:'Instale o Claude Code',desc:'Execute no terminal:',code:'npm install -g @anthropic-ai/claude-code'},
+    {title:'Crie o arquivo de configuração',desc:`Crie ou edite o arquivo <code>${path}</code>:`,code:`mkdir -p ${scope==='project'?'.claude':'~/.claude'}\ntouch ${path}`},
+    {title:'Adicione o hook ao settings.json',desc:'Cole a configuração no arquivo JSON:',code:json},
+    {title:'Torne o script executável (se necessário)',desc:'Se o comando for um script de arquivo:',code:'chmod +x ./meu-script.sh'},
+    {title:'Verifique os hooks ativos',desc:'No Claude Code, liste os hooks configurados:',code:'claude\n/hooks'},
+    {title:'Teste o hook',desc:'Execute uma ação que dispare o evento configurado e verifique o comportamento:',code:`# Exemplo: acione "${selEvent}" fazendo a ação correspondente\nclaude\n# O hook será disparado automaticamente`},
+  ];
+  showModal('Instalar hook: '+name, 'red');
+}
+
+/* ════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════ */
+setView('agents');
+renderPatterns();
+renderEventGrid();
+renderMatcherChips();
+selExit(0);
+if(agents.length) selectAgent(agents[0].id);
+else document.getElementById('agentEmpty').style.display='flex';
+</script>
+</body>
+</html>
